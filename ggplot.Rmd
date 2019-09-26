@@ -1,0 +1,123 @@
+---
+title: "ggplot 1"
+date: "9/26/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggridges)
+```
+
+
+## create the weatger data
+
+```{r load_data, cache=TRUE}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+weather_df
+```
+
+## create a ggplot
+```{r}
+ggplot(weather_df, aes(x=tmin, y=tmax)) +
+  geom_point()
+##aes is for aesthetics
+##geom_point() adds a corresponding point to each thing
+```
+
+alternate way of making this plot
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax))+geom_point()
+```
+saving initial points. Most of the time i do not do this
+```{r}
+scatterplot=
+  weather_df %>%
+  ggplot(aes(x=tmin, y=tmax)) +
+  geom_point()
+
+#doesn't print out results. just saves things
+
+scatterplot
+
+#this prints it
+```
+time to add some color ... 
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax)) +
+  geom_point(aes(color=name), alpha=0.4)
+#alpha level determines transparency. closer to 0, mostly transparent
+```
+difference between aes in the geom_point vs in the ggplot. "why do 'aes' positions matter?
+
+color matters in geom_point but not in geom smooth
+
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax)) +
+  geom_point(aes(color=name), alpha=0.4) +
+  geom_smooth(se=FALSE)
+
+#se=false gets rid of the error bars
+```
+
+if put it in ggplot, we see that it goes through all of the points (individual)
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name)) +
+  geom_point(aes(color=name), alpha=0.4) +
+  geom_smooth(se=FALSE)
+
+#se=false gets rid of the error bars
+```
+
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name)) +
+  geom_point(aes(color=name), alpha=0.4) +
+  geom_smooth(se=FALSE) +
+  facet_grid(~name)
+
+#se=false gets rid of the error bars
+#facet panels each group
+```
+
+more fun plots! 
+
+```{r}
+#seasonal trend in each of these locations
+weather_df %>%
+  ggplot(aes(x=date, y=prcp, color=name)) +
+  geom_point() +
+  geom_smooth(se=FALSE)
+
+#geom_point is the signifier for scatterplots
+#can change the y
+```
+```{r}
+#seasonal trend in each of these locations
+weather_df %>%
+  ggplot(aes(x=date, y=tmax, color=name)) +
+  geom_point(aes(size=prcp), alpha=0.5) +
+  geom_smooth(size=2, se=FALSE)
+
+#geom_point is the signifier for scatterplots
+#prcp is changed too 
+```
