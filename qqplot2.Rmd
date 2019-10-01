@@ -1,0 +1,96 @@
+---
+title: "qqplot 2"
+date: "10/1/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggridges)
+```
+
+
+## create the weatger data
+
+```{r load_data, cache=TRUE}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+weather_df
+```
+cache saves output in directory and doesnt redownload the dataset
+
+## making new plots
+
+start with an old plot!
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name))+
+  geom_point(alpha=0.5)
+```
+
+add labels:
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name))+
+  geom_point(alpha=0.5) + 
+  labs(
+    title = "Temperature plot",
+    x="Minimum Temp (C)",
+    y= "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  )
+```
+x axis and tick marks
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name))+
+  geom_point(alpha=0.5) + 
+  labs(
+    title = "Temperature plot",
+    x="Minimum Temp (C)",
+    y= "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  ) +
+  scale_x_continuous(
+    breaks = c(-15,-5,20),
+    labels = c("-15C", "-5" , "20")
+  ) +
+  scale_y_continuous(
+    trans = "sqrt"
+  )
+```
+breaks: currently -10, 0, 10, 20. 
+(the width on the bottom)
+
+trans= transformation. 
+  scale_y_continuous(
+    trans = "sqrt" 
+  ) and scale_y_sqrt() are the same function in r. can use either
+
+## colors!
+```{r}
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name))+
+  geom_point(alpha=0.5) + 
+  labs(
+    title = "Temperature plot",
+    x="Minimum Temp (C)",
+    y= "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  )
+```
+
