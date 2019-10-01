@@ -91,6 +91,157 @@ weather_df %>%
     x="Minimum Temp (C)",
     y= "Maximum Temp (C)",
     caption = "Data from NOAA via rnoaa package"
+  ) +
+  scale_color_hue(
+    name = "Weather Station Location",
+    h=c(50,200)
   )
+```
+
+name = the legend name
+you can change the color by hand but you do not have to do this
+
+###viridis package
+```{r}
+ggplot_base=
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax, color=name))+
+  geom_point(alpha=0.5) + 
+  labs(
+    title = "Temperature plot",
+    x="Minimum Temp (C)",
+    y= "Maximum Temp (C)",
+    caption = "Data from NOAA via rnoaa package"
+  ) +
+ viridis::scale_color_viridis(
+    name = "Location", 
+    discrete = TRUE
+  )
+
+ggplot_base
+
+```
+##themes
+```{r}
+ggplot_base +
+  theme(legend.position="bottom")
+```
+
+theme: global things that describe what hte plot looks like 
+- general organization (i.e.legend position) **better to put legends on the bottom**
+
+```{r}
+ggplot_base +
+  theme_bw()+
+  theme(legend.position="bottom")
+```
+how to get rid of the legend in total
+```{r}
+ggplot_base +
+  theme_bw()+
+  theme(legend.position="none")
+```
+
+order matters. theme minimal and tehn update positions, its going to go in order
+```{r}
+ggplot_base +
+  theme_minimal()+
+  theme(legend.position="bottom")
+```
+ viridis overrides some default color pallet. This is just so that all plots look the smae. 
+```{r}
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+## more than one dataset
+```{r}
+central_park=
+  weather_df %>% 
+  filter (name=="CentralPark_NY")
+
+waikiki=
+  weather_df %>% 
+  filter(name=="Waikiki_HA")
+
+  ggplot(data=waikiki, aes(x=date, y=tmax, color=name)) +
+  geom_point(aes(size=prcp))+
+    geom_line(data=central_park)
+```
+
+(brief aside about colors)
+
+```{r}
+waikiki %>% 
+  ggplot(aes(x= date, y=tmax)) + 
+  geom_point(color= "yellow")
+```
+devtools::install_github("thomasp85/patchwork")
+
+##multi=panel plots
+```{r}
+library(patchwork)
+ggp_scatter=
+  weather_df %>% 
+  ggplot(aes(x=tmin, y=tmax)) + 
+  geom_point()
+
+ggp_density=
+  weather_df %>%  
+  ggplot(aes(x=tmin)) +
+  geom_density()
+
+ggp_box=
+  weather_df %>% 
+  ggplot(aes(x = name, y =tmax)) + 
+  geom_boxplot()
+
+ggp_scatter + (ggp_density / ggp_box)
+```
+## Data Manipulation
+
+```{r}
+weather_df %>% 
+  mutate(
+    name=factor(name),
+    name=fct_relevel(name, "Waikiki_HA", "CentralPark_NY")
+  ) %>% 
+  ggplot(aes(x=name, y=tmax, color=name)) + 
+  geom_boxplot()
+```
+relevel : puts them in different levels 
+fct_reorder : puts them in order based on a variable 
+```{r}
+weather_df %>% 
+  mutate(
+    name=factor(name),
+    name=fct_reorder(name, tmax)
+  ) %>% 
+  ggplot(aes(x=name, y=tmax, color=name)) + 
+  geom_boxplot()
+```
+
+## restructure the plot
+
+```{r}
+weather_df %>% 
+  pivot_longer(
+    tmax:tmin,
+    names_to="observation", 
+    values_to = "temperature"
+  ) %>% 
+  ggplot(aes(x=temperature, fill = observations)) +
+  geom_density() + 
+  feom_desnity() +
+  facet_grid(-name) +
+  theme(legend.position = "bottom")
+
 ```
 
